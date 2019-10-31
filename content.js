@@ -69,12 +69,12 @@ async function onMakeTag(tag) {
         command: "addPeopleFromNameList",
         args: [
             tag,
-            await getIDs()
+            await getNames()
         ]
     }, "*");
 }
 
-async function getIDs() {
+async function getNames() {
     document.body.style.zoom = "1%";
     await sleep(1000);
     let youSpan = document.querySelector("span[title=You]");

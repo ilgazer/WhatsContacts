@@ -1,5 +1,5 @@
 const frame = document.createElement("iframe");
-const frameUrl = "https://ilgazer.github.io/whatsapp-to-contact-tag/people";
+const frameUrl = "https://ilgazer.github.io/google-contacts-helper/people.html";
 frame.setAttribute("src", frameUrl);
 document.body.appendChild(frame);
 
