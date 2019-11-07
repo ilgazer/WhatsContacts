@@ -5,6 +5,35 @@ document.body.appendChild(frame);
 let peopleWindow = frame.contentWindow;
 let insertedGroupButton = false;
 
+let events = [];
+
+window.addEventListener("message", function (event) {
+    console.log(event);
+    if (event.data.resp) {
+        events[event.data.id](event.data.resp);
+    }
+}, false);
+
+function getPeopleCommand(command) {
+    return function (...args) {
+        peopleWindow.postMessage({
+            id: events.length,
+            command: command,
+            args: args
+        }, "*");
+        return new Promise((resolve, reject) => {
+            events[events.length] = resolve;
+        });
+    }
+}
+
+let people = {
+    addPeopleToContacts: getPeopleCommand("addPeopleToContacts"),
+    getContactsFromNameList: getPeopleCommand("getContactsFromNameList"),
+    getLabelOrCreateNew: getPeopleCommand("getLabelOrCreateNew"),
+    addToLabelFromContactList: getPeopleCommand("addToLabelFromContactList")
+};
+
 document.addEventListener("click", onDocumentClick);
 
 async function onDocumentClick() {
@@ -65,13 +94,11 @@ function insertGroupButtons() {
 }
 
 async function onMakeTag(tag) {
-    peopleWindow.postMessage({
-        command: "addPeopleFromNameList",
-        args: [
-            tag,
-            await getNames()
-        ]
-    }, "*");
+    Promise.all([
+        people.getLabelOrCreateNew(tag),
+        getNames().then(people.getContactsFromNameList)])
+        .then(([labelId, contactList]) => people.addToLabelFromContactList(labelId, contactList))
+        .then(console.log);
 }
 
 async function getNames() {
@@ -87,7 +114,8 @@ async function getNames() {
     }
     console.log(peopleParent);
 
-    let names = Array.from(peopleParent.children).map(child => child.getElementsByClassName(youSpan.classList[0])[0].innerText);
+    let names = Array.from(peopleParent.children)
+        .map(child => child.getElementsByClassName(youSpan.classList[0])[0].innerText);
 
     document.body.style.zoom = "100%";
 
